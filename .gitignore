@@ -6,3 +6,9 @@
 
 # 리서치 중간 산출물
 research/_scratch/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/

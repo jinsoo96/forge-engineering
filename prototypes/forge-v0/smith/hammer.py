@@ -18,20 +18,30 @@ except ImportError:
 
 SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schemas" / "reflection.v1.json"
 
-SYSTEM_PROMPT = """You are the Reflection Hammer in a Forge Engineering runtime.
+_SCHEMA_SNIPPET = json.dumps(
+    json.loads(SCHEMA_PATH.read_text()), indent=2, ensure_ascii=False
+)
 
-You read an agent run record and output a single JSON object conforming to the
-Reflection Schema. No prose. No backticks. Valid JSON only.
+SYSTEM_PROMPT = f"""You are the Reflection Hammer in a Forge Engineering runtime.
 
-Goals:
-1. Identify WHERE the run failed (or underperformed) with specificity.
-2. Identify WHY — root cause, not symptom.
-3. State a LESSON in at most 3 lines.
-4. Propose concrete rewrite_candidates pointing at harness artifacts that, if
-   edited, would prevent recurrence.
-5. Assign a confidence in [0, 1].
+You read an agent run record and output a single JSON object that MUST validate
+against the following JSON Schema. Output JSON only — no prose, no code fences,
+no markdown. Field names and enums are literal.
 
-Never invent facts not present in the trace. If unsure, lower confidence.
+=== REFLECTION SCHEMA v1 ===
+{_SCHEMA_SNIPPET}
+=== END SCHEMA ===
+
+Rules:
+1. Top-level MUST include: run_id, goal, outcome, root_cause_analysis, lesson,
+   confidence. Copy run_id, goal, outcome from the input verbatim.
+2. root_cause_analysis MUST have where_failed, why_failed, evidence (array).
+3. rewrite_candidates items MUST use EXACT keys: target, change_type, rationale.
+   target MUST be one of: system_prompt, tool_spec, workflow, agents_md,
+   skill_library. change_type MUST be one of: add, modify, remove.
+4. lesson: ≤ 3 lines, actionable, what to do differently next time.
+5. confidence: float in [0, 1]. Lower when trace is ambiguous.
+6. Never invent facts not present in the trace.
 """.strip()
 
 
@@ -54,30 +64,55 @@ def reflect(run_record: dict[str, Any]) -> dict[str, Any]:
         indent=2,
     )
 
-    for attempt in range(3):
+    last_text = ""
+    last_err = ""
+    for _attempt in range(3):
         resp = client.messages.create(
             model="claude-opus-4-7",
             max_tokens=2048,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_payload}],
-            extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
         )
-        text = resp.content[0].text.strip()
+        last_text = resp.content[0].text.strip()
+        candidate_text = _strip_code_fence(last_text)
+
         try:
-            candidate = json.loads(text)
-        except json.JSONDecodeError:
+            candidate = json.loads(candidate_text)
+        except json.JSONDecodeError as exc:
+            last_err = f"JSON parse error: {exc}"
+            user_payload = (
+                f"Your previous output was not valid JSON ({exc}).\n"
+                f"Output JSON ONLY, no markdown, no code fences.\n\nRun:\n{user_payload}"
+            )
             continue
 
         if jsonschema is None:
-            return candidate  # trust fallback
+            return candidate
         try:
             jsonschema.validate(candidate, schema)
             return candidate
         except jsonschema.ValidationError as exc:
+            last_err = f"schema violation: {exc.message}"
             user_payload = (
                 f"Previous output did not validate: {exc.message}\n\n"
-                f"Try again. Output JSON only.\n\nRun:\n{user_payload}"
+                f"Try again. Output JSON ONLY per schema.\n\nRun:\n{user_payload}"
             )
             continue
 
-    raise RuntimeError("reflection did not validate after 3 attempts")
+    raise RuntimeError(
+        f"reflection did not validate after 3 attempts. "
+        f"Last error: {last_err}\n--- raw output (tail) ---\n{last_text[-800:]}"
+    )
+
+
+def _strip_code_fence(text: str) -> str:
+    """Strip ```json ... ``` or ``` ... ``` wrappers if the model added them."""
+    t = text.strip()
+    if t.startswith("```"):
+        # drop first line (``` or ```json) and trailing ```
+        lines = t.splitlines()
+        lines = lines[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        t = "\n".join(lines).strip()
+    return t
