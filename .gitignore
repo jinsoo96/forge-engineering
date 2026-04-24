@@ -1,0 +1,8 @@
+# 토큰·비밀정보 보호
+.claude/CLAUDE.md
+.env
+*.secret
+.DS_Store
+
+# 리서치 중간 산출물
+research/_scratch/

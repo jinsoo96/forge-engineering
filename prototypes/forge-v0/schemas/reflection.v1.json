@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge://schemas/reflection/v1",
+  "title": "Forge Reflection Schema v1",
+  "type": "object",
+  "required": ["run_id", "goal", "outcome", "root_cause_analysis", "lesson", "confidence"],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "goal": { "type": "string", "maxLength": 400 },
+    "outcome": { "enum": ["success", "partial", "failure"] },
+    "root_cause_analysis": {
+      "type": "object",
+      "required": ["where_failed", "why_failed", "evidence"],
+      "additionalProperties": false,
+      "properties": {
+        "where_failed": { "type": "string" },
+        "why_failed": { "type": "string" },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    },
+    "lesson": {
+      "type": "string",
+      "description": "Actionable takeaway in at most 3 lines.",
+      "maxLength": 600
+    },
+    "rewrite_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "change_type", "rationale"],
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "enum": [
+              "system_prompt",
+              "tool_spec",
+              "workflow",
+              "agents_md",
+              "skill_library"
+            ]
+          },
+          "change_type": { "enum": ["add", "modify", "remove"] },
+          "rationale": { "type": "string", "maxLength": 400 }
+        }
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

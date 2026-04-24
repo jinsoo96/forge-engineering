@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge://schemas/rewrite/v1",
+  "title": "Forge Rewrite Proposal Schema v1",
+  "type": "object",
+  "required": [
+    "proposal_id",
+    "derived_from_reflection",
+    "target_artifact_path",
+    "diff",
+    "expected_effect",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "proposal_id": { "type": "string", "format": "uuid" },
+    "derived_from_reflection": { "type": "string", "format": "uuid" },
+    "target_artifact_path": { "type": "string" },
+    "branch": { "type": "string" },
+    "diff": { "type": "string" },
+    "expected_effect": { "type": "string", "maxLength": 400 },
+    "rollback_criteria": { "type": "string" },
+    "benchmark_runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["run_id", "score"],
+        "properties": {
+          "run_id": { "type": "string" },
+          "score": { "type": "number" }
+        }
+      }
+    },
+    "status": {
+      "enum": ["proposed", "ab_testing", "promoted", "rolled_back"]
+    }
+  }
+}

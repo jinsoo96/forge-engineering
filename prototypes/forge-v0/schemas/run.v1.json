@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forge://schemas/run/v1",
+  "title": "Forge Run Record Schema v1",
+  "type": "object",
+  "required": ["run_id", "goal", "outcome", "started_at", "harness_sha"],
+  "additionalProperties": true,
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "task_path": { "type": "string" },
+    "goal": { "type": "string" },
+    "started_at": { "type": "number" },
+    "duration_s": { "type": "number" },
+    "outcome": { "enum": ["success", "partial", "failure"] },
+    "stdout_tail": { "type": "string" },
+    "stderr_tail": { "type": "string" },
+    "exit_code": { "type": "integer" },
+    "harness_sha": { "type": "string" },
+    "state_transitions": {
+      "type": "array",
+      "description": "Reserved for phase 2 — state-transition-graph trace.",
+      "items": { "type": "object" }
+    }
+  }
+}

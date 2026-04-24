@@ -1,0 +1,20 @@
+# Sample Repo — Initial Harness
+
+This is a minimal Python project used to demonstrate Forge self-improvement.
+
+## Conventions
+- Python 3.11, tests via pytest.
+- Keep changes minimal.
+
+## Tool permissions
+- Allowed: read/write any file under `src/`.
+- Restricted: modifying `conf/` requires justification.
+- Not allowed: touching `bench/fixed/` (benchmark anchor).
+
+## Known constraints
+- Do not upgrade dependencies without asking.
+
+<!--
+  NOTE: deliberately omits: where config lives, how fixtures are discovered.
+  Forge should *learn* these facts and add them through self-rewrites.
+-->
