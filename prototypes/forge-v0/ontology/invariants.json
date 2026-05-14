@@ -1,0 +1,55 @@
+{
+  "$schema": "https://forge-engineering.dev/ontology/invariants/v1",
+  "version": "0.1",
+  "source": "ontology/core.ttl",
+  "invariants": [
+    {
+      "id": "I1",
+      "name": "proposal_has_reflection",
+      "applies_to": "proposal",
+      "check": "required_field",
+      "field": "derived_from_reflection",
+      "violation_message": "Proposal must reference a reflection run_id."
+    },
+    {
+      "id": "I2",
+      "name": "target_in_writable_surface",
+      "applies_to": "proposal",
+      "check": "path_not_in_locked",
+      "locked_paths": [
+        "FORGE.md",
+        "ontology/core.ttl",
+        "ontology/invariants.json",
+        "bench/fixed/",
+        ".env"
+      ],
+      "violation_message": "Proposal targets a locked-surface path."
+    },
+    {
+      "id": "I3",
+      "name": "validator_agreement_recorded",
+      "applies_to": "commit",
+      "check": "trailer_present",
+      "trailer": "Validator-Agreement",
+      "violation_message": "Commit missing Validator-Agreement trailer."
+    },
+    {
+      "id": "I4",
+      "name": "min_confidence",
+      "applies_to": "reflection",
+      "check": "min_numeric",
+      "field": "confidence",
+      "min": 0.4,
+      "violation_message": "Reflection confidence below 0.4 — proposal must be rejected."
+    },
+    {
+      "id": "I5",
+      "name": "lyapunov_monotone",
+      "applies_to": "benchmark_delta",
+      "check": "min_numeric",
+      "field": "delta",
+      "min": -0.05,
+      "violation_message": "Benchmark regression below threshold; rollback required."
+    }
+  ]
+}

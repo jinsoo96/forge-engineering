@@ -7,6 +7,11 @@
 # 리서치 중간 산출물
 research/_scratch/
 
+# 작업 로그·기획 메모 — 내부용, push 금지
+docs/worklog/
+docs/_planning/
+docs/_internal/
+
 # Python
 __pycache__/
 *.pyc

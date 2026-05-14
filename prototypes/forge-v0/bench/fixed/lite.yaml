@@ -1,27 +1,15 @@
-# Fixed benchmark — read-only for Smith.
-# Removing or modifying this file is prohibited by FORGE.md locked_surface.
+# Fixed benchmark — read-only for Smith. Modifying this file is prohibited by
+# FORGE.md locked_surface.
 #
-# J(H) is the average of `score` across tasks after running the current harness.
-# For v0, each task's `score` is set manually after a dry-run; future versions
-# will execute tasks and compute scores live.
+# J(H) is the mean of per-task scores. A task may declare:
+#   - `score` (static, for legacy demo cases), or
+#   - `pytest_dir` (run pytest there; score = passed/total).
 
 baseline: 0.0
 
 tasks:
-  - id: t01-read-config
+  - id: sample_repo_pytest
     description: |
-      The agent must locate the project's primary config file and answer what
-      database URL it declares. Success = correct URL string returned.
-    score: 0.0
-
-  - id: t02-fix-test
-    description: |
-      A failing unit test references a missing fixture. The agent must locate
-      the fixture (it is not imported), import it, and make the test pass.
-    score: 0.0
-
-  - id: t03-add-endpoint
-    description: |
-      Add a new GET /health endpoint that returns 200. The agent must also
-      add a matching test and have both pass.
-    score: 0.0
+      Score = fraction of pytest tests passing in demo/sample_repo. This is the
+      empirical anchor for J(H). Initial state: 3/6 pass (J=0.5).
+    pytest_dir: demo/sample_repo

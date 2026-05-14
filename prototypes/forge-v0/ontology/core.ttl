@@ -1,0 +1,51 @@
+@prefix forge: <https://forge-engineering.dev/ontology#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+#
+# Forge Engineering core ontology v0.1.
+#
+# Locked-surface artifact (FORGE.md §1). Smith MUST NOT mutate this file.
+# Encodes the invariants that any harness rewrite must preserve.
+#
+
+# --- Classes ----------------------------------------------------------------
+
+forge:Harness        a owl:Class ; rdfs:comment "The 6-tuple H=(P,T,W,M,G,C)." .
+forge:Runner         a owl:Class ; rdfs:comment "Inner-loop agent. No harness write access." .
+forge:Smith          a owl:Class ; rdfs:comment "Outer-loop self-modification engine." .
+forge:Reflection     a owl:Class ; rdfs:comment "Structured trace post-mortem." .
+forge:Proposal       a owl:Class ; rdfs:comment "A unit of harness mutation." .
+forge:Benchmark      a owl:Class ; rdfs:comment "External anchor for J(H)." .
+forge:LockedSurface  a owl:Class ; rdfs:comment "Files Smith may not write to." .
+forge:WritableSurface a owl:Class ; rdfs:comment "Files Smith may write to." .
+
+# --- Object properties ------------------------------------------------------
+
+forge:derivedFrom    a owl:ObjectProperty ;
+    rdfs:domain forge:Proposal ;
+    rdfs:range  forge:Reflection .
+
+forge:targets        a owl:ObjectProperty ;
+    rdfs:domain forge:Proposal ;
+    rdfs:range  forge:WritableSurface .
+
+forge:measures       a owl:ObjectProperty ;
+    rdfs:domain forge:Benchmark ;
+    rdfs:range  forge:Harness .
+
+# --- Datatype properties ----------------------------------------------------
+
+forge:confidence     a owl:DatatypeProperty .
+forge:lyapunovValue  a owl:DatatypeProperty .
+
+# --- Axioms / invariants (consumed by ontology_gate.py) ---------------------
+#
+# I1. A Proposal MUST have a derivedFrom Reflection.
+# I2. A Proposal's target path MUST be a member of WritableSurface (not Locked).
+# I3. If verdict=approve, Validator-Agreement MUST be "yes" in commit trailer.
+# I4. Reflection.confidence ∈ [0,1]. Below 0.4 ⇒ proposal auto-rejected.
+# I5. J(H_new) − J(H_old) ≥ −0.05 (Inertia Brake threshold).
+#
+# These are enumerated in machine-readable form in ontology/invariants.json
+# because v0 lacks a SPARQL runtime; .ttl serves as the human-canonical source.
